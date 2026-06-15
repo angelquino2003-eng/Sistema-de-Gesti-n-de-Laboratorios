@@ -7,19 +7,21 @@ import java.time.LocalDate;
 import java.util.List;
 
 // Importamos los repositorios (Adrián creará las implementaciones reales de estas interfaces)
-// import pe.edu.unmsm.fisi.repository.EquipoRepository;
-// import pe.edu.unmsm.fisi.repository.ReservaRepository;
+import pe.edu.unmsm.fisi.repository.EquipoRepository;
+import pe.edu.unmsm.fisi.repository.EquipoRepositoryImpl;
+import pe.edu.unmsm.fisi.repository.ReservaRepository;
+import pe.edu.unmsm.fisi.repository.ReservaRepositoryImpl;
 
 public class ReservaServiceImpl implements ReservaService {
 
     // Dependencias hacia la capa de datos (Adrián)
-    // private final EquipoRepository equipoRepo;
-    // private final ReservaRepository reservaRepo;
+    private final EquipoRepository equipoRepo;
+    private final ReservaRepository reservaRepo;
 
     public ReservaServiceImpl() {
         // Cuando Adrián termine su parte en la Semana 10 y 11, descomentaremos esto:
-        // this.equipoRepo = new EquipoRepositoryImpl();
-        // this.reservaRepo = new ReservaRepositoryImpl();
+        this.equipoRepo = new EquipoRepositoryImpl();
+        this.reservaRepo = new ReservaRepositoryImpl();
     }
 
     @Override
@@ -29,15 +31,15 @@ public class ReservaServiceImpl implements ReservaService {
         
         // 1. OBTENER ESPACIO DE BÚSQUEDA
         // Le pedimos a la BD de Adrián TODAS las PCs de ese laboratorio específico
-        // List<Computadora> computadorasLab = equipoRepo.findByLaboratorio(idLaboratorio);
+        List<Computadora> computadorasLab = equipoRepo.listarPorLaboratorio(idLaboratorio);
         
         // SIMULACIÓN (Borrar cuando Adrián termine su repositorio):
-        List<Computadora> computadorasLab = List.of(
+        /* List<Computadora> computadorasLab = List.of(
             new Computadora(1, "PC-01", "OCUPADA", idLaboratorio),
             new Computadora(2, "PC-02", "MANTENIMIENTO", idLaboratorio),
             new Computadora(3, "PC-03", "DISPONIBLE", idLaboratorio),
             new Computadora(4, "PC-04", "DISPONIBLE", idLaboratorio)
-        );
+        ); */
 
         Computadora pcAsignada = null;
 
@@ -74,8 +76,8 @@ public class ReservaServiceImpl implements ReservaService {
 
         // 5. TRANSSACCIÓN HACIA LA BASE DE DATOS
         // Aquí llamaríamos a los repositorios de Adrián para guardar la reserva y bloquear la PC
-        // reservaRepo.save(nuevaReserva);
-        // equipoRepo.updateEstadoEquipo(pcAsignada.getIdComputadora(), "OCUPADA");
+        reservaRepo.save(nuevaReserva);
+        equipoRepo.cambiarEstado(pcAsignada.getIdComputadora(), "OCUPADA");
         
         System.out.println("¡Asignación exitosa! La " + pcAsignada.getCodigoPc() + " ha sido bloqueada para el alumno.");
 
@@ -94,15 +96,15 @@ public class ReservaServiceImpl implements ReservaService {
         }
 
         // 2. OBTENER RESERVAS EXISTENTES DEL DÍA (El espacio de búsqueda)
-        // List<Reserva> reservasLaboratorio = reservaRepo.findByLaboratorioYFecha(idLaboratorio, LocalDate.now());
+        List<Reserva> reservasLaboratorio = reservaRepo.findReservasPorLaboratorio(idLaboratorio, LocalDate.now());
         
         // SIMULACIÓN: Imaginemos que la base de datos nos dice que el Laboratorio ya tiene estas reservas hoy:
-        List<Reserva> reservasLaboratorio = List.of(
+        /* List<Reserva> reservasLaboratorio = List.of(
             // Reserva de 08:00 a 10:00 para Base de Datos
             new Reserva(1, 99, "PROFESOR", LocalDate.now(), 800, 1000, "ACTIVA", idLaboratorio, 0, "Base de Datos"),
             // Reserva de 14:00 a 16:00 para Algorítmica I
             new Reserva(2, 98, "PROFESOR", LocalDate.now(), 1400, 1600, "ACTIVA", idLaboratorio, 0, "Algorítmica I")
-        );
+        ); */
 
         // 3. LÓGICA MATEMÁTICA: Detección de Colisiones (Overlap)
         boolean choqueDetectado = false;
@@ -140,7 +142,7 @@ public class ReservaServiceImpl implements ReservaService {
         nuevaReserva.setCursoAcademico(curso);
 
         // PERSISTENCIA (A la espera de Adrián)
-        // reservaRepo.save(nuevaReserva);
+        reservaRepo.save(nuevaReserva);
 
         System.out.println("¡Reserva Docente Exitosa! Laboratorio " + idLaboratorio + " asignado para " + curso + " de " + horaInicio + " a " + horaFin);
         
