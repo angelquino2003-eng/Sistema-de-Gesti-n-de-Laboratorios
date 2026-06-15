@@ -15,8 +15,8 @@ public class EquipoRepositoryImpl implements EquipoRepository {
     @Override
     public boolean cambiarEstado(int idComputadora, String nuevoEstado) {
         String sql = "UPDATE tbl_computadoras SET estado = ? WHERE id_computadora = ?";
-        try (Connection conn = ConexionBD.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = ConexionBD.getInstance().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, nuevoEstado);
             stmt.setInt(2, idComputadora);
             int filasAfectadas = stmt.executeUpdate();
@@ -31,8 +31,8 @@ public class EquipoRepositoryImpl implements EquipoRepository {
     @Override
     public Computadora buscarPorId(int idComputadora) {
         String sql = "SELECT * FROM tbl_computadoras WHERE id_computadora = ?";
-        try (Connection conn = ConexionBD.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = ConexionBD.getInstance().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idComputadora);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -50,8 +50,8 @@ public class EquipoRepositoryImpl implements EquipoRepository {
     public List<Computadora> listarPorLaboratorio(int idLaboratorio) {
         List<Computadora> lista = new ArrayList<>();
         String sql = "SELECT * FROM tbl_computadoras WHERE id_laboratorio = ?";
-        try (Connection conn = ConexionBD.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = ConexionBD.getInstance().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idLaboratorio);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

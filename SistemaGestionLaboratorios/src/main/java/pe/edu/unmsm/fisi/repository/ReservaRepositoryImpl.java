@@ -11,7 +11,7 @@ public class ReservaRepositoryImpl implements ReservaRepository {
 
     @Override
     public boolean save(Reserva reserva) {
-        String sql = "INSERT INTO tbl_reservas (id_usuario, tipo_reserva, fecha, hora_inicio, hora_fin, estado, id_laboratorio, id_computadoras, curso_academico) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tbl_reservas (id_usuario, tipo_reserva, fecha, hora_inicio, hora_fin, estado, id_laboratorio, id_computadora, curso_academico) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
             conn = ConexionBD.getInstance().getConnection();
@@ -25,7 +25,11 @@ public class ReservaRepositoryImpl implements ReservaRepository {
                 stmt.setInt(5, reserva.getHoraFin());
                 stmt.setString(6, reserva.getEstado());
                 stmt.setInt(7, reserva.getIdLaboratorio());
-                stmt.setInt(8, reserva.getIdComputadora());
+                if (reserva.getIdComputadora() == 0) {
+                    stmt.setNull(8, java.sql.Types.INTEGER);
+                } else {
+                    stmt.setInt(8, reserva.getIdComputadora());
+                }
                 stmt.setString(9, reserva.getCursoAcademico());
 
                 int filas = stmt.executeUpdate();
@@ -53,8 +57,8 @@ public class ReservaRepositoryImpl implements ReservaRepository {
     public List<Reserva> findReservasPorLaboratorio(int idLaboratorio, LocalDate fecha) {
         List<Reserva> lista = new ArrayList<>();
         String sql = "SELECT * FROM tbl_reservas WHERE id_laboratorio = ? AND fecha = ?";
-        try (Connection conn = ConexionBD.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = ConexionBD.getInstance().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idLaboratorio);
             stmt.setDate(2, Date.valueOf(fecha));
             try (ResultSet rs = stmt.executeQuery()) {
@@ -72,8 +76,8 @@ public class ReservaRepositoryImpl implements ReservaRepository {
     public List<Reserva> findReservasActivasPorUsuario(int idUsuario) {
         List<Reserva> lista = new ArrayList<>();
         String sql = "SELECT * FROM tbl_reservas WHERE id_usuario = ? AND estado = 'APROBADA'";
-        try (Connection conn = ConexionBD.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = ConexionBD.getInstance().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idUsuario);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -96,7 +100,7 @@ public class ReservaRepositoryImpl implements ReservaRepository {
             rs.getInt("hora_fin"),
             rs.getString("estado"),
             rs.getInt("id_laboratorio"),
-            rs.getInt("id_computadoras"),
+            rs.getInt("id_computadora"),
             rs.getString("curso_academico")
         );
     }

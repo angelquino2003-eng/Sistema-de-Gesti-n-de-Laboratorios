@@ -141,11 +141,15 @@ public class ReservaServiceImpl implements ReservaService {
         nuevaReserva.setIdComputadora(0); 
         nuevaReserva.setCursoAcademico(curso);
 
-        // PERSISTENCIA (A la espera de Adrián)
-        reservaRepo.save(nuevaReserva);
+        // PERSISTENCIA (A la base de datos de Adrián)
+        boolean guardadoOk = reservaRepo.save(nuevaReserva);
 
-        System.out.println("¡Reserva Docente Exitosa! Laboratorio " + idLaboratorio + " asignado para " + curso + " de " + horaInicio + " a " + horaFin);
-        
-        return true;
+        if (guardadoOk) {
+            System.out.println("¡Reserva Docente Exitosa! Laboratorio " + idLaboratorio + " asignado para " + curso + " de " + horaInicio + " a " + horaFin);
+            return true;
+        } else {
+            System.out.println("Error: No se pudo guardar la reserva en la base de datos. Verifica que el ID del usuario exista.");
+            return false;
+        }
     }
 }

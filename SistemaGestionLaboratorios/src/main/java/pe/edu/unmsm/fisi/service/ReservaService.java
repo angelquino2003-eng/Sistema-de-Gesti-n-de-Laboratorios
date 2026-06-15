@@ -10,4 +10,5 @@ public interface ReservaService {
     
     // Interval Scheduling para validación de horarios de docentes (Fase posterior)
     boolean procesarReservaDocente(Usuario profesor, int idLaboratorio, int horaInicio, int horaFin, String curso);
+    
 }
