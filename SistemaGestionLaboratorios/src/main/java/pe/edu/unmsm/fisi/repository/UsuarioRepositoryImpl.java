@@ -56,7 +56,7 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
         return usuarios;
     }
 
-    // Método auxiliar para convertir la fila de MySQL en un Objeto Java
+    // Método auxiliar para convertir la fila de MySQL en un Objeto Java ._.
     private Usuario mapearUsuario(ResultSet rs) throws SQLException {
         int id = rs.getInt("id_usuario");
         String nombre = rs.getString("nombre");
@@ -64,16 +64,12 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
         String pass = rs.getString("password");
         Rol rol = Rol.valueOf(rs.getString("rol").toUpperCase());
 
-        // Dependiendo del rol en la BD, instanciamos la clase hija correcta
-        switch (rol) {
-            case ALUMNO:
-                return new Alumno(id, nombre, correo, pass, rs.getString("codigo_alumno"), rs.getInt("tiempo_limite"));
-            case PROFESOR:
-                return new Profesor(id, nombre, correo, pass, rs.getString("departamento_profesor"));
-            case TECNICO:
-                return new Tecnico(id, nombre, correo, pass, rs.getString("especialidad_tecnico"));
-            default:
-                return null;
-        }
+        // Dependiendo del rol en la BD, instanciamos la clase hija correcta :v
+        return switch (rol) {
+            case ALUMNO -> new Alumno(id, nombre, correo, pass, rs.getString("codigo_alumno"), rs.getInt("tiempo_limite"));
+            case PROFESOR -> new Profesor(id, nombre, correo, pass, rs.getString("departamento_profesor"));
+            case TECNICO -> new Tecnico(id, nombre, correo, pass, rs.getString("especialidad_tecnico"));
+            default -> null;
+        };
     }
 }

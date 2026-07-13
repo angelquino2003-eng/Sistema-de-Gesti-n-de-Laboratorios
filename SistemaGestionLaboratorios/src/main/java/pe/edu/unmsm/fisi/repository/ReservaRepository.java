@@ -8,4 +8,7 @@ public interface ReservaRepository {
     boolean save(Reserva reserva);
     List<Reserva> findReservasPorLaboratorio(int idLaboratorio, LocalDate fecha);
     List<Reserva> findReservasActivasPorUsuario(int idUsuario);
+    
+    // NUEVO: Método que absorbe la responsabilidad de la antigua SesionActiva
+    boolean registrarIngresoReal(int idReserva);
 }

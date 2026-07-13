@@ -1,33 +1,20 @@
 package pe.edu.unmsm.fisi.model.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import pe.edu.unmsm.fisi.model.enums.EstadoReserva;
 
-public class Reserva {
+public abstract class Reserva {
     private int idReserva;
     private int idUsuario;
-    private String tipoReserva;
     private LocalDate fecha; 
     private int horaInicio;
     private int horaFin;
-    private String estado;
-    private int idLaboratorio;
-    private int idComputadora;
-    private String cursoAcademico;
+    private EstadoReserva estado;
+    private int idLaboratorio; // Ambas reservas necesitan saber en qué lab están
+    private LocalDateTime horaIngresoReal; // Reemplazo de SesionActiva
 
     public Reserva() {
-    }
-
-    public Reserva(int idReserva, int idUsuario, String tipoReserva, LocalDate fecha, int horaInicio, int horaFin, String estado, int idLaboratorio, int idComputadora, String cursoAcademico) {
-        this.idReserva = idReserva;
-        this.idUsuario = idUsuario;
-        this.tipoReserva = tipoReserva;
-        this.fecha = fecha;
-        this.horaInicio = horaInicio;
-        this.horaFin = horaFin;
-        this.estado = estado;
-        this.idLaboratorio = idLaboratorio;
-        this.idComputadora = idComputadora;
-        this.cursoAcademico = cursoAcademico;
     }
 
     public int getIdReserva() {
@@ -44,14 +31,6 @@ public class Reserva {
 
     public void setIdUsuario(int idUsuario) {
         this.idUsuario = idUsuario;
-    }
-
-    public String getTipoReserva() {
-        return tipoReserva;
-    }
-
-    public void setTipoReserva(String tipoReserva) {
-        this.tipoReserva = tipoReserva;
     }
 
     public LocalDate getFecha() {
@@ -78,11 +57,11 @@ public class Reserva {
         this.horaFin = horaFin;
     }
 
-    public String getEstado() {
+    public EstadoReserva getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoReserva estado) {
         this.estado = estado;
     }
 
@@ -94,20 +73,11 @@ public class Reserva {
         this.idLaboratorio = idLaboratorio;
     }
 
-    public int getIdComputadora() {
-        return idComputadora;
+    public LocalDateTime getHoraIngresoReal() {
+        return horaIngresoReal;
     }
 
-    public void setIdComputadora(int idComputadora) {
-        this.idComputadora = idComputadora;
+    public void setHoraIngresoReal(LocalDateTime horaIngresoReal) {
+        this.horaIngresoReal = horaIngresoReal;
     }
-
-    public String getCursoAcademico() {
-        return cursoAcademico;
-    }
-
-    public void setCursoAcademico(String cursoAcademico) {
-        this.cursoAcademico = cursoAcademico;
-    }
-    
 }
