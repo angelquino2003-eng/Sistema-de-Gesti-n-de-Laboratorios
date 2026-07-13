@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
+  <SubComponents>
+    <Container class="javax.swing.JPanel" name="headerPanel">
+      <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="North"/></Constraint></Constraints>
+      <Properties><Property name="opaque" type="boolean" value="false"/></Properties>
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout"><Property name="columns" type="int" value="1"/><Property name="rows" type="int" value="0"/><Property name="verticalGap" type="int" value="6"/></Layout>
+      <SubComponents>
+        <Component class="javax.swing.JLabel" name="titleLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Reserva docente de laboratorio"/></Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="subtitleLabel">
+          <Properties><Property name="text" type="java.lang.String" value="La validación de intervalos impide registrar horarios que se superponen."/></Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPanel" name="formPanel">
+      <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="Center"/></Constraint></Constraints>
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout"><Property name="columns" type="int" value="2"/><Property name="rows" type="int" value="0"/><Property name="horizontalGap" type="int" value="24"/><Property name="verticalGap" type="int" value="14"/></Layout>
+      <SubComponents>
+        <Component class="javax.swing.JLabel" name="laboratorioLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Laboratorio"/></Properties>
+        </Component>
+        <Component class="javax.swing.JSpinner" name="laboratorioSpinner">
+        </Component>
+        <Component class="javax.swing.JLabel" name="cursoLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Curso"/></Properties>
+        </Component>
+        <Component class="javax.swing.JTextField" name="cursoField">
+        </Component>
+        <Component class="javax.swing.JLabel" name="fechaLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Fecha (AAAA-MM-DD)"/></Properties>
+        </Component>
+        <Component class="javax.swing.JTextField" name="fechaField">
+        </Component>
+        <Component class="javax.swing.JLabel" name="inicioLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Hora de inicio"/></Properties>
+        </Component>
+        <Component class="javax.swing.JComboBox" name="inicioCombo">
+        </Component>
+        <Component class="javax.swing.JLabel" name="finLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Hora de fin"/></Properties>
+        </Component>
+        <Component class="javax.swing.JComboBox" name="finCombo">
+        </Component>
+        <Component class="javax.swing.JLabel" name="buttonSpacerLabel">
+          <Properties><Property name="text" type="java.lang.String" value=" "/></Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="reserveButton">
+          <Properties><Property name="text" type="java.lang.String" value="Validar y registrar reserva"/></Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+  </SubComponents>
+</Form>

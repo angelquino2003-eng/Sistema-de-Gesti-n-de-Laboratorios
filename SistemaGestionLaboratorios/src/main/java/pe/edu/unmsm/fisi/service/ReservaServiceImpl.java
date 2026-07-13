@@ -1,5 +1,8 @@
 package pe.edu.unmsm.fisi.service;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import pe.edu.unmsm.fisi.model.entity.Computadora;
 import pe.edu.unmsm.fisi.model.entity.Reserva;
 import pe.edu.unmsm.fisi.model.entity.ReservaComputadora;
@@ -7,14 +10,13 @@ import pe.edu.unmsm.fisi.model.entity.ReservaLaboratorio;
 import pe.edu.unmsm.fisi.model.entity.Usuario;
 import pe.edu.unmsm.fisi.model.enums.EstadoEquipo;
 import pe.edu.unmsm.fisi.model.enums.EstadoReserva;
-
-import java.time.LocalDate;
-import java.util.List;
-
+import pe.edu.unmsm.fisi.model.enums.Rol;
 import pe.edu.unmsm.fisi.repository.EquipoRepository;
 import pe.edu.unmsm.fisi.repository.EquipoRepositoryImpl;
 import pe.edu.unmsm.fisi.repository.ReservaRepository;
 import pe.edu.unmsm.fisi.repository.ReservaRepositoryImpl;
+import pe.edu.unmsm.fisi.exception.EntradaInvalidaException;
+import pe.edu.unmsm.fisi.exception.ReservaSolapadaException;
 
 public class ReservaServiceImpl implements ReservaService {
 
@@ -28,109 +30,118 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Override
     public ReservaComputadora solicitarAsignacionAutomaticaAlumno(Usuario alumno, int idLaboratorio, String requerimientoSoftware) {
-        
-        System.out.println("Iniciando Algoritmo Voraz (Greedy) para asignación de PC...");
-        
+        validarUsuario(alumno, Rol.ALUMNO);
+
         // 1. OBTENER ESPACIO DE BÚSQUEDA
         List<Computadora> computadorasLab = equipoRepo.listarPorLaboratorio(idLaboratorio);
-        Computadora pcAsignada = null;
 
         // 2. LÓGICA VORAZ (Greedy Choice Property)
-        for (Computadora pc : computadorasLab) {
-            // Validamos contra el Enum
-            if (EstadoEquipo.DISPONIBLE.name().equalsIgnoreCase(pc.getEstado())) {
-                pcAsignada = pc;
-                break; // ¡Atrapada! Optimizamos recursos.
-            }
-        }
+        Computadora pcAsignada = computadorasLab.stream()
+                .filter(pc -> EstadoEquipo.DISPONIBLE.name().equalsIgnoreCase(pc.getEstado()))
+                .findFirst()
+                .orElseThrow(() -> new EntradaInvalidaException("No hay computadoras disponibles en el Laboratorio " + idLaboratorio));
 
-        // 3. VALIDACIÓN DE RECURSOS
-        if (pcAsignada == null) {
-            System.err.println("Rechazo: No hay computadoras disponibles en el Laboratorio " + idLaboratorio);
-            return null;
-        }
-
-        System.out.println("PC Óptima encontrada: " + pcAsignada.getCodigoPc());
-
-        // 4. CONSTRUCCIÓN DEL OBJETO POLIMÓRFICO
+        // 3. CONSTRUCCIÓN DEL OBJETO POLIMÓRFICO
         ReservaComputadora nuevaReserva = new ReservaComputadora();
         nuevaReserva.setIdUsuario(alumno.getIdUsuario());
         nuevaReserva.setFecha(LocalDate.now());
-        nuevaReserva.setHoraInicio(1400); // Simulación
-        nuevaReserva.setHoraFin(1600); // Simulación
-        nuevaReserva.setEstado(EstadoReserva.PENDIENTE); // PENDIENTE hasta que inicie sesión real
+        nuevaReserva.setHoraInicio(1400); // Hora de simulación
+        nuevaReserva.setHoraFin(1600);    // Hora de simulación
+        nuevaReserva.setEstado(EstadoReserva.PENDIENTE);
         nuevaReserva.setIdLaboratorio(idLaboratorio);
         nuevaReserva.setIdComputadora(pcAsignada.getIdComputadora());
         nuevaReserva.setRequerimientoSoftware(requerimientoSoftware); 
 
-        // 5. TRANSACCIÓN HACIA LA BASE DE DATOS
-        boolean guardadoOk = reservaRepo.save(nuevaReserva);
-        if(guardadoOk) {
-             // equipoRepo.cambiarEstado(pcAsignada.getIdComputadora(), EstadoEquipo.OCUPADA.name());
-             System.out.println("¡Asignación exitosa! La " + pcAsignada.getCodigoPc() + " ha sido reservada para el alumno.");
+        // 4. TRANSACCIÓN HACIA LA BASE DE DATOS
+        if (reservaRepo.save(nuevaReserva)) {
+             // Bloqueamos el equipo inmediatamente para evitar condiciones de carrera
+             equipoRepo.cambiarEstado(pcAsignada.getIdComputadora(), EstadoEquipo.OCUPADO.name());
              return nuevaReserva;
         } else {
-             System.err.println("Error al guardar la reserva en la BD.");
-             return null;
+             throw new EntradaInvalidaException("Error crítico al guardar la reserva en la base de datos.");
         }
     }
 
     @Override
-    public boolean procesarReservaDocente(Usuario profesor, int idLaboratorio, int horaInicio, int horaFin, String curso) {
-        
-        System.out.println("\n--- Iniciando Interval Scheduling para Reserva Docente ---");
+    public boolean procesarReservaDocente(Usuario profesor, int idLaboratorio, LocalDate fecha, int horaInicio, int horaFin, String curso) {
+        validarUsuario(profesor, Rol.PROFESOR);
+        validarDatosReserva(idLaboratorio, curso, fecha, horaInicio, horaFin);
 
-        // 1. VALIDACIÓN DE COHERENCIA DE DATOS
-        if (horaInicio >= horaFin) {
-            System.err.println("Error: La hora de inicio no puede ser mayor o igual a la hora de fin.");
-            return false;
-        }
-
-        // 2. OBTENER ESPACIO DE BÚSQUEDA
-        List<Reserva> reservasLaboratorio = reservaRepo.findReservasPorLaboratorio(idLaboratorio, LocalDate.now());
+        // 1. ESPACIO DE BÚSQUEDA DE HORARIOS
+        List<Reserva> reservasLaboratorio = reservaRepo.findReservasPorLaboratorio(idLaboratorio, fecha);
         
-        // 3. LÓGICA MATEMÁTICA: Detección de Colisiones (Overlap)
-        boolean choqueDetectado = false;
+        // 2. LÓGICA MATEMÁTICA: Interval Scheduling
         for (Reserva existente : reservasLaboratorio) {
-            if (horaInicio < existente.getHoraFin() && horaFin > existente.getHoraInicio()) {
-                // Validamos que el choque sea solo con otras clases
-                if(existente instanceof ReservaLaboratorio) {
-                     ReservaLaboratorio rl = (ReservaLaboratorio) existente;
-                     System.err.println("¡Choque de horarios detectado! El laboratorio está ocupado de "
-                        + existente.getHoraInicio() + " a " + existente.getHoraFin()
-                        + " por el curso de " + rl.getCursoAcademico());
-                     choqueDetectado = true;
-                     break;
+            if (haySolapamiento(horaInicio, horaFin, existente.getHoraInicio(), existente.getHoraFin())) {
+                
+                String nombreCurso = "Clase programada";
+                if (existente instanceof ReservaLaboratorio) {
+                    nombreCurso = ((ReservaLaboratorio) existente).getCursoAcademico();
                 }
+                
+                throw new ReservaSolapadaException(
+                        "Choque de horario detectado con el curso '" + nombreCurso + 
+                        "' de " + formatearHora(existente.getHoraInicio()) + 
+                        " a " + formatearHora(existente.getHoraFin())
+                );
             }
         }
 
-        // 4. RESOLUCIÓN DE LA TRANSACCIÓN
-        if (choqueDetectado) {
-            System.err.println("Transacción rechazada para proteger la integridad del horario.");
-            return false; 
-        }
-
-        System.out.println("Validación matemática superada: La franja horaria está completamente libre.");
-
-        // 5. CONSTRUCCIÓN DE LA NUEVA RESERVA POLIMÓRFICA
+        // 3. CONSTRUCCIÓN DE LA RESERVA
         ReservaLaboratorio nuevaReserva = new ReservaLaboratorio();
         nuevaReserva.setIdUsuario(profesor.getIdUsuario());
-        nuevaReserva.setFecha(LocalDate.now());
+        nuevaReserva.setFecha(fecha);
         nuevaReserva.setHoraInicio(horaInicio);
         nuevaReserva.setHoraFin(horaFin);
-        nuevaReserva.setEstado(EstadoReserva.APROBADA); // La reserva del profe se aprueba de inmediato
+        nuevaReserva.setEstado(EstadoReserva.APROBADA); // Docente tiene aprobación inmediata
         nuevaReserva.setIdLaboratorio(idLaboratorio);
         nuevaReserva.setCursoAcademico(curso);
 
-        // 6. PERSISTENCIA
-        boolean guardadoOk = reservaRepo.save(nuevaReserva);
-        if (guardadoOk) {
-            System.out.println("¡Reserva Docente Exitosa! Laboratorio " + idLaboratorio + " asignado para " + curso + " de " + horaInicio + " a " + horaFin);
-            return true;
-        } else {
-            System.out.println("Error: No se pudo guardar la reserva en la base de datos.");
-            return false;
+        // 4. PERSISTENCIA
+        if (!reservaRepo.save(nuevaReserva)) {
+            throw new EntradaInvalidaException("No se pudo guardar la reserva docente.");
         }
+        return true;
+    }
+
+    // --- MÉTODOS AUXILIARES DE VALIDACIÓN (Rescatados de Rodrigo) ---
+
+    private void validarUsuario(Usuario usuario, Rol rolEsperado) {
+        if (usuario == null) {
+            throw new EntradaInvalidaException("No existe una sesión activa.");
+        }
+        if (usuario.getRol() != rolEsperado) {
+            throw new EntradaInvalidaException("El usuario no tiene el rol necesario para esta operación.");
+        }
+    }
+
+    private void validarDatosReserva(int idLaboratorio, String curso, LocalDate fecha, int inicio, int fin) {
+        if (idLaboratorio <= 0) {
+            throw new EntradaInvalidaException("El laboratorio seleccionado no es válido.");
+        }
+        if (curso == null || curso.isBlank()) {
+            throw new EntradaInvalidaException("Debe indicar el curso o motivo de la reserva.");
+        }
+        if (fecha == null || fecha.isBefore(LocalDate.now())) {
+            throw new EntradaInvalidaException("La fecha no puede ser anterior a hoy.");
+        }
+        if (!esHoraValida(inicio) || !esHoraValida(fin) || inicio >= fin) {
+            throw new EntradaInvalidaException("El rango horario ingresado no es válido (Ej: 1400 a 1600).");
+        }
+    }
+
+    private boolean esHoraValida(int hora) {
+        int horas = hora / 100;
+        int minutos = hora % 100;
+        return horas >= 0 && horas <= 23 && minutos >= 0 && minutos <= 59;
+    }
+
+    // Aplicación matemática para exclusión mutua de intervalos
+    private boolean haySolapamiento(int inicioA, int finA, int inicioB, int finB) {
+        return inicioA < finB && finA > inicioB;
+    }
+
+    private String formatearHora(int hora) {
+        return String.format("%02d:%02d", hora / 100, hora % 100);
     }
 }
