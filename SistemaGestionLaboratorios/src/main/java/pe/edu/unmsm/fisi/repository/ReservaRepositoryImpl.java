@@ -1,22 +1,24 @@
 package pe.edu.unmsm.fisi.repository;
 
-import pe.edu.unmsm.fisi.config.ConexionBD;
-import pe.edu.unmsm.fisi.model.entity.Reserva;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import pe.edu.unmsm.fisi.config.ConexionBD;
+import pe.edu.unmsm.fisi.model.entity.Reserva;
 
 public class ReservaRepositoryImpl implements ReservaRepository {
 
     @Override
     public boolean save(Reserva reserva) {
         String sql = "INSERT INTO tbl_reservas (id_usuario, tipo_reserva, fecha, hora_inicio, hora_fin, estado, id_laboratorio, id_computadora, curso_academico) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        Connection conn = null;
-        try {
-            conn = ConexionBD.getInstance().getConnection();
-            conn.setAutoCommit(false); // Inicia la transacción
-
+        try (Connection conn = ConexionBD.getInstance().getConnection()) {
+            conn.setAutoCommit(false);
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, reserva.getIdUsuario());
                 stmt.setString(2, reserva.getTipoReserva());
@@ -26,39 +28,29 @@ public class ReservaRepositoryImpl implements ReservaRepository {
                 stmt.setString(6, reserva.getEstado());
                 stmt.setInt(7, reserva.getIdLaboratorio());
                 if (reserva.getIdComputadora() == 0) {
-                    stmt.setNull(8, java.sql.Types.INTEGER);
+                    stmt.setNull(8, Types.INTEGER);
                 } else {
                     stmt.setInt(8, reserva.getIdComputadora());
                 }
                 stmt.setString(9, reserva.getCursoAcademico());
-
-                int filas = stmt.executeUpdate();
-                conn.commit(); // Confirma la transacción
-                return filas > 0;
+                boolean ok = stmt.executeUpdate() > 0;
+                conn.commit();
+                return ok;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
             }
         } catch (SQLException e) {
-            System.err.println("Error al guardar reserva, revirtiendo: " + e.getMessage());
-            try {
-                if (conn != null) conn.rollback(); // Revierte si algo falla
-            } catch (SQLException ex) {
-                System.err.println("Error al hacer rollback: " + ex.getMessage());
-            }
-            return false;
-        } finally {
-            try {
-                if (conn != null) conn.setAutoCommit(true); // Restaura el modo normal
-            } catch (SQLException e) {
-                System.err.println("Error al restaurar autocommit: " + e.getMessage());
-            }
+            throw new IllegalStateException("No se pudo guardar la reserva: " + e.getMessage(), e);
         }
     }
 
     @Override
     public List<Reserva> findReservasPorLaboratorio(int idLaboratorio, LocalDate fecha) {
+        String sql = "SELECT * FROM tbl_reservas WHERE id_laboratorio = ? AND fecha = ? AND estado IN ('ACTIVA','APROBADA') ORDER BY hora_inicio";
         List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM tbl_reservas WHERE id_laboratorio = ? AND fecha = ?";
-        Connection conn = ConexionBD.getInstance().getConnection();
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idLaboratorio);
             stmt.setDate(2, Date.valueOf(fecha));
             try (ResultSet rs = stmt.executeQuery()) {
@@ -67,17 +59,17 @@ public class ReservaRepositoryImpl implements ReservaRepository {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error al listar reservas: " + e.getMessage());
+            throw new IllegalStateException("No se pudieron consultar las reservas: " + e.getMessage(), e);
         }
         return lista;
     }
 
     @Override
     public List<Reserva> findReservasActivasPorUsuario(int idUsuario) {
+        String sql = "SELECT * FROM tbl_reservas WHERE id_usuario = ? AND estado IN ('ACTIVA','APROBADA') ORDER BY fecha DESC, hora_inicio";
         List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM tbl_reservas WHERE id_usuario = ? AND estado = 'APROBADA'";
-        Connection conn = ConexionBD.getInstance().getConnection();
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idUsuario);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -85,23 +77,56 @@ public class ReservaRepositoryImpl implements ReservaRepository {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error al listar reservas del usuario: " + e.getMessage());
+            throw new IllegalStateException("No se pudieron consultar las reservas del usuario: " + e.getMessage(), e);
         }
         return lista;
     }
 
+    @Override
+    public List<Reserva> findTodas() {
+        String sql = "SELECT * FROM tbl_reservas ORDER BY fecha DESC, hora_inicio";
+        List<Reserva> lista = new ArrayList<>();
+        try (Connection conn = ConexionBD.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(mapearReserva(rs));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("No se pudieron listar las reservas: " + e.getMessage(), e);
+        }
+        return lista;
+    }
+
+    @Override
+    public boolean actualizarEstado(int idReserva, String estado) {
+        String sql = "UPDATE tbl_reservas SET estado = ? WHERE id_reserva = ?";
+        try (Connection conn = ConexionBD.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, estado);
+            stmt.setInt(2, idReserva);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new IllegalStateException("No se pudo actualizar la reserva: " + e.getMessage(), e);
+        }
+    }
+
     private Reserva mapearReserva(ResultSet rs) throws SQLException {
+        int idComputadora = rs.getInt("id_computadora");
+        if (rs.wasNull()) {
+            idComputadora = 0;
+        }
         return new Reserva(
-            rs.getInt("id_reserva"),
-            rs.getInt("id_usuario"),
-            rs.getString("tipo_reserva"),
-            rs.getDate("fecha").toLocalDate(),
-            rs.getInt("hora_inicio"),
-            rs.getInt("hora_fin"),
-            rs.getString("estado"),
-            rs.getInt("id_laboratorio"),
-            rs.getInt("id_computadora"),
-            rs.getString("curso_academico")
+                rs.getInt("id_reserva"),
+                rs.getInt("id_usuario"),
+                rs.getString("tipo_reserva"),
+                rs.getDate("fecha").toLocalDate(),
+                rs.getInt("hora_inicio"),
+                rs.getInt("hora_fin"),
+                rs.getString("estado"),
+                rs.getInt("id_laboratorio"),
+                idComputadora,
+                rs.getString("curso_academico")
         );
     }
 }

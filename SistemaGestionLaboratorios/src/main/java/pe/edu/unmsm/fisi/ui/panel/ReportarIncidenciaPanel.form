@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
+  <SubComponents>
+    <Container class="javax.swing.JPanel" name="headerPanel">
+      <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="North"/></Constraint></Constraints>
+      <Properties><Property name="opaque" type="boolean" value="false"/></Properties>
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout"><Property name="columns" type="int" value="1"/><Property name="rows" type="int" value="0"/><Property name="verticalGap" type="int" value="6"/></Layout>
+      <SubComponents>
+        <Component class="javax.swing.JLabel" name="titleLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Reportar incidencia técnica"/></Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="subtitleLabel">
+          <Properties><Property name="text" type="java.lang.String" value="El reporte se almacenará con estado PENDIENTE para su atención por un técnico."/></Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPanel" name="formPanel">
+      <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="Center"/></Constraint></Constraints>
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout"><Property name="columns" type="int" value="2"/><Property name="rows" type="int" value="0"/><Property name="horizontalGap" type="int" value="20"/><Property name="verticalGap" type="int" value="14"/></Layout>
+      <SubComponents>
+        <Component class="javax.swing.JLabel" name="laboratorioLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Laboratorio"/></Properties>
+        </Component>
+        <Component class="javax.swing.JSpinner" name="laboratorioSpinner">
+        </Component>
+        <Component class="javax.swing.JLabel" name="computadoraLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Computadora"/></Properties>
+        </Component>
+        <Container class="javax.swing.JPanel" name="pcRowPanel">
+          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"><Property name="horizontalGap" type="int" value="10"/></Layout>
+          <SubComponents>
+            <Component class="javax.swing.JComboBox" name="computadoraCombo">
+              <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="Center"/></Constraint></Constraints>
+            </Component>
+            <Component class="javax.swing.JButton" name="loadButton">
+              <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="East"/></Constraint></Constraints>
+              <Properties><Property name="text" type="java.lang.String" value="Cargar computadoras"/></Properties>
+            </Component>
+          </SubComponents>
+        </Container>
+        <Component class="javax.swing.JLabel" name="tipoLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Tipo de incidencia"/></Properties>
+        </Component>
+        <Component class="javax.swing.JComboBox" name="tipoCombo">
+        </Component>
+        <Component class="javax.swing.JLabel" name="descripcionLabel">
+          <Properties><Property name="text" type="java.lang.String" value="Descripción"/></Properties>
+        </Component>
+        <Container class="javax.swing.JScrollPane" name="descripcionScroll">
+          <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+          <SubComponents>
+            <Component class="javax.swing.JTextArea" name="descripcionArea">
+            </Component>
+          </SubComponents>
+        </Container>
+        <Component class="javax.swing.JLabel" name="buttonSpacerLabel">
+          <Properties><Property name="text" type="java.lang.String" value=" "/></Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="saveButton">
+          <Properties><Property name="text" type="java.lang.String" value="Registrar incidencia"/></Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+  </SubComponents>
+</Form>

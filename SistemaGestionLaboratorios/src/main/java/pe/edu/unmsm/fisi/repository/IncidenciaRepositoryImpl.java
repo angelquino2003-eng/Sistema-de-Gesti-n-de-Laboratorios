@@ -1,8 +1,14 @@
 package pe.edu.unmsm.fisi.repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import pe.edu.unmsm.fisi.config.ConexionBD;
 import pe.edu.unmsm.fisi.model.entity.Incidencia;
-import java.sql.*;
 
 public class IncidenciaRepositoryImpl implements IncidenciaRepository {
 
@@ -19,25 +25,30 @@ public class IncidenciaRepositoryImpl implements IncidenciaRepository {
             stmt.setString(6, incidencia.getEstado());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error al guardar incidencia: " + e.getMessage());
-            return false;
+            throw new IllegalStateException("No se pudo guardar la incidencia: " + e.getMessage(), e);
         }
     }
 
-    // Cola FIFO: trae la incidencia pendiente más antigua
     @Override
     public Incidencia findSiguienteIncidenciaFIFO() {
         String sql = "SELECT * FROM tbl_incidencias WHERE estado = 'PENDIENTE' ORDER BY fecha_reporte ASC LIMIT 1";
         try (Connection conn = ConexionBD.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                return mapearIncidencia(rs);
-            }
+            return rs.next() ? mapearIncidencia(rs) : null;
         } catch (SQLException e) {
-            System.err.println("Error al obtener siguiente incidencia FIFO: " + e.getMessage());
+            throw new IllegalStateException("No se pudo obtener la siguiente incidencia: " + e.getMessage(), e);
         }
-        return null;
+    }
+
+    @Override
+    public List<Incidencia> findPendientes() {
+        return consultar("SELECT * FROM tbl_incidencias WHERE estado IN ('PENDIENTE','EN_PROCESO') ORDER BY fecha_reporte ASC");
+    }
+
+    @Override
+    public List<Incidencia> findTodas() {
+        return consultar("SELECT * FROM tbl_incidencias ORDER BY fecha_reporte DESC");
     }
 
     @Override
@@ -49,20 +60,33 @@ public class IncidenciaRepositoryImpl implements IncidenciaRepository {
             stmt.setInt(2, idIncidencia);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error al actualizar estado de incidencia: " + e.getMessage());
-            return false;
+            throw new IllegalStateException("No se pudo actualizar la incidencia: " + e.getMessage(), e);
         }
+    }
+
+    private List<Incidencia> consultar(String sql) {
+        List<Incidencia> lista = new ArrayList<>();
+        try (Connection conn = ConexionBD.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(mapearIncidencia(rs));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("No se pudieron consultar las incidencias: " + e.getMessage(), e);
+        }
+        return lista;
     }
 
     private Incidencia mapearIncidencia(ResultSet rs) throws SQLException {
         return new Incidencia(
-            rs.getInt("id_incidencia"),
-            rs.getInt("id_computadora"),
-            rs.getInt("id_usuario_reporta"),
-            rs.getString("descripcion"),
-            rs.getString("tipo_incidencia"),
-            rs.getTimestamp("fecha_reporte").toLocalDateTime(),
-            rs.getString("estado")
+                rs.getInt("id_incidencia"),
+                rs.getInt("id_computadora"),
+                rs.getInt("id_usuario_reporta"),
+                rs.getString("descripcion"),
+                rs.getString("tipo_incidencia"),
+                rs.getTimestamp("fecha_reporte").toLocalDateTime(),
+                rs.getString("estado")
         );
     }
 }
