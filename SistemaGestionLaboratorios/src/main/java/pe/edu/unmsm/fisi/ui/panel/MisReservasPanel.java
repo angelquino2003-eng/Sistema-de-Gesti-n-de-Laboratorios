@@ -52,11 +52,39 @@ public class MisReservasPanel extends javax.swing.JPanel {
     private void llenarTabla(List<Reserva> reservas) {
         model.setRowCount(0);
         for (Reserva reserva : reservas) {
+            
+            // Variables por defecto para armar la fila
+            String tipoReserva = "DESCONOCIDO";
+            String pcAsignada = "Laboratorio completo";
+            String curso = "-";
+            
+            // Evaluamos polimórficamente qué tipo de reserva es
+            switch (reserva) {
+                case pe.edu.unmsm.fisi.model.entity.ReservaComputadora rc -> {
+                    tipoReserva = "COMPUTADORA";
+                    pcAsignada = String.valueOf(rc.getIdComputadora());
+                    curso = rc.getRequerimientoSoftware(); // Mostramos el software que pidió el alumno
+                }
+                case pe.edu.unmsm.fisi.model.entity.ReservaLaboratorio rl -> {
+                    tipoReserva = "LABORATORIO";
+                    pcAsignada = "Laboratorio completo";
+                    curso = rl.getCursoAcademico();
+                }
+                default -> {
+                }
+            }
+
+            // Agregamos la fila a la tabla (JTable) con los datos limpios
             model.addRow(new Object[]{
-                reserva.getIdReserva(), reserva.getFecha(), UiKit.formatHour(reserva.getHoraInicio()),
-                UiKit.formatHour(reserva.getHoraFin()), reserva.getTipoReserva(), reserva.getIdLaboratorio(),
-                reserva.getIdComputadora() == 0 ? "Laboratorio completo" : reserva.getIdComputadora(),
-                reserva.getCursoAcademico(), reserva.getEstado()
+                reserva.getIdReserva(), 
+                reserva.getFecha(), 
+                UiKit.formatHour(reserva.getHoraInicio()),
+                UiKit.formatHour(reserva.getHoraFin()), 
+                tipoReserva, 
+                reserva.getIdLaboratorio(),
+                pcAsignada,
+                curso, 
+                reserva.getEstado().name() // Extraemos el texto del Enum
             });
         }
     }

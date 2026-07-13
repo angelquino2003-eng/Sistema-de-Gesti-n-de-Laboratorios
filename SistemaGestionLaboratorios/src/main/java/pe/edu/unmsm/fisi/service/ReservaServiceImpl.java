@@ -29,7 +29,7 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
-    public ReservaComputadora solicitarAsignacionAutomaticaAlumno(Usuario alumno, int idLaboratorio, String requerimientoSoftware) {
+    public ReservaComputadora solicitarAsignacionAutomaticaAlumno(Usuario alumno, int idLaboratorio, String requerimientoSoftware, int horaInicio, int horaFin) {
         validarUsuario(alumno, Rol.ALUMNO);
 
         // 1. OBTENER ESPACIO DE BÚSQUEDA
@@ -45,6 +45,8 @@ public class ReservaServiceImpl implements ReservaService {
         ReservaComputadora nuevaReserva = new ReservaComputadora();
         nuevaReserva.setIdUsuario(alumno.getIdUsuario());
         nuevaReserva.setFecha(LocalDate.now());
+        nuevaReserva.setHoraInicio(horaInicio);
+        nuevaReserva.setHoraFin(horaFin);
         nuevaReserva.setHoraInicio(1400); // Hora de simulación
         nuevaReserva.setHoraFin(1600);    // Hora de simulación
         nuevaReserva.setEstado(EstadoReserva.PENDIENTE);

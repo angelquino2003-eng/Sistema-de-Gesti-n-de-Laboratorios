@@ -6,6 +6,10 @@ import java.util.List;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
 import pe.edu.unmsm.fisi.model.entity.Reserva;
+import pe.edu.unmsm.fisi.model.entity.ReservaComputadora;
+import pe.edu.unmsm.fisi.model.entity.ReservaLaboratorio;
+import pe.edu.unmsm.fisi.model.enums.EstadoEquipo;
+import pe.edu.unmsm.fisi.model.enums.EstadoReserva;
 import pe.edu.unmsm.fisi.repository.EquipoRepository;
 import pe.edu.unmsm.fisi.repository.EquipoRepositoryImpl;
 import pe.edu.unmsm.fisi.repository.ReservaRepository;
@@ -68,11 +72,11 @@ public class ReservasAdminPanel extends javax.swing.JPanel {
         int id = (Integer) model.getValueAt(modelRow, 0);
         Object pcValue = model.getValueAt(modelRow, 8);
         UiKit.async(this, cancelButton, "Cancelando...", () -> {
-            boolean ok = repository.actualizarEstado(id, "CANCELADA");
-            if (ok && pcValue instanceof Integer idComputadora) {
-                equipoRepository.cambiarEstado(idComputadora, "DISPONIBLE");
-            }
-            return ok;
+        boolean ok = repository.actualizarEstado(id, EstadoReserva.CANCELADA);
+        if (ok && pcValue instanceof Integer idComputadora) {
+        equipoRepository.cambiarEstado(idComputadora, EstadoEquipo.DISPONIBLE.name());
+        }
+        return ok;
         }, ok -> {
             if (ok) {
                 UiKit.info(this, "La reserva fue marcada como CANCELADA y la computadora asociada fue liberada.");
@@ -84,10 +88,40 @@ public class ReservasAdminPanel extends javax.swing.JPanel {
     private void llenar(List<Reserva> reservas) {
         model.setRowCount(0);
         for (Reserva reserva : reservas) {
-            model.addRow(new Object[]{reserva.getIdReserva(), reserva.getIdUsuario(), reserva.getTipoReserva(),
-                reserva.getFecha(), UiKit.formatHour(reserva.getHoraInicio()), UiKit.formatHour(reserva.getHoraFin()),
-                reserva.getEstado(), reserva.getIdLaboratorio(),
-                reserva.getIdComputadora() == 0 ? "—" : reserva.getIdComputadora(), reserva.getCursoAcademico()});
+            
+            String tipoReserva = "DESCONOCIDO";
+            String pcAsignada = "-";
+            String curso = "-";
+            
+            // Downcasting seguro
+            switch (reserva) {
+                case ReservaComputadora rc -> {
+                    tipoReserva = "COMPUTADORA";
+                    pcAsignada = String.valueOf(rc.getIdComputadora());
+                    curso = rc.getRequerimientoSoftware();
+                }
+                case ReservaLaboratorio rl -> {
+                    tipoReserva = "LABORATORIO";
+                    pcAsignada = "-";
+                    curso = rl.getCursoAcademico();
+                }
+                default -> {
+                }
+            }
+
+            // Llenado respetando el orden exacto de las columnas de Rodrigo
+            model.addRow(new Object[]{
+                reserva.getIdReserva(), 
+                reserva.getIdUsuario(), 
+                tipoReserva,
+                reserva.getFecha(), 
+                UiKit.formatHour(reserva.getHoraInicio()), 
+                UiKit.formatHour(reserva.getHoraFin()),
+                reserva.getEstado().name(), // Convertimos el Enum a String para la tabla
+                reserva.getIdLaboratorio(),
+                pcAsignada, 
+                curso
+            });
         }
     }
 

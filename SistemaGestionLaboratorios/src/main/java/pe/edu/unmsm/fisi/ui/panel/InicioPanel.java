@@ -59,12 +59,21 @@ public class InicioPanel extends javax.swing.JPanel {
             connectionValueLabel.setText("Vista de diseño");
             connectionDetailLabel.setText("La conexión no se prueba dentro del editor visual.");
         } else {
-            boolean conectado = ConexionBD.getInstance().probarConexion();
-            connectionValueLabel.setText(conectado ? "Conectada" : "Sin conexión");
-            connectionValueLabel.setForeground(conectado ? AppTheme.SUCCESS : AppTheme.DANGER);
-            connectionDetailLabel.setText("<html>" + ConexionBD.getInstance().getUrl() + "</html>");
+        boolean conectado = false;
+        try {
+            // Usamos tu Singleton blindado y verificamos el estado nativo de JDBC
+            java.sql.Connection conn = ConexionBD.getInstance().getConnection();
+            conectado = (conn != null && !conn.isClosed());
+        } catch (Exception e) {
+            conectado = false;
         }
+
+        connectionValueLabel.setText(conectado ? "Conectada" : "Sin conexión");
+        connectionValueLabel.setForeground(conectado ? AppTheme.SUCCESS : AppTheme.DANGER);
+        // Escribimos directamente la ruta de tu nueva base de datos v2
+        connectionDetailLabel.setText("<html>jdbc:mysql://localhost:3306/<b>gestion_laboratorios_v2</b></html>");
     }
+}
 
     private String descripcionRol(Rol rol) {
         return switch (rol) {

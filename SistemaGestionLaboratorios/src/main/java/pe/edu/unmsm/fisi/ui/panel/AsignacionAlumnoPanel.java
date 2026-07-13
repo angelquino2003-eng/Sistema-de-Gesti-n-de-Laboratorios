@@ -1,12 +1,12 @@
 package pe.edu.unmsm.fisi.ui.panel;
 
 import java.awt.Dimension;
-import java.beans.Beans;
 import java.time.LocalDate;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SpinnerNumberModel;
 import pe.edu.unmsm.fisi.model.entity.Alumno;
 import pe.edu.unmsm.fisi.model.entity.Reserva;
+import pe.edu.unmsm.fisi.model.entity.ReservaComputadora;
 import pe.edu.unmsm.fisi.model.entity.Usuario;
 import pe.edu.unmsm.fisi.service.ReservaService;
 import pe.edu.unmsm.fisi.service.ReservaServiceImpl;
@@ -62,26 +62,40 @@ public class AsignacionAlumnoPanel extends javax.swing.JPanel {
     }
 
     private void asignar() {
-        UiKit.async(this, assignButton, "Buscando PC...", () -> {
-            int laboratorio = (Integer) laboratorioSpinner.getValue();
-            LocalDate fecha = LocalDate.parse(fechaField.getText().trim());
-            int inicio = UiKit.parseHour(inicioCombo.getSelectedItem());
-            int fin = UiKit.parseHour(finCombo.getSelectedItem());
-            return service.solicitarAsignacionAutomaticaAlumno(
-                    usuario, laboratorio, cursoField.getText(), fecha, inicio, fin
-            );
-        }, this::mostrarResultado);
-    }
+    UiKit.async(this, assignButton, "Buscando PC...", () -> {
+        int laboratorio = (Integer) laboratorioSpinner.getValue();
+        String software = cursoField.getText().trim();
+        // Recuperamos la lectura de los combos de Rodrigo
+        int inicio = UiKit.parseHour(inicioCombo.getSelectedItem());
+        int fin = UiKit.parseHour(finCombo.getSelectedItem());
+        
+        return service.solicitarAsignacionAutomaticaAlumno(
+                usuario, laboratorio, software, inicio, fin
+        );
+    }, this::mostrarResultado);
+}
 
     private void mostrarResultado(Reserva reserva) {
-        resultLabel.setForeground(AppTheme.SUCCESS);
-        resultLabel.setText("<html><b>Asignación completada</b><br><br>Laboratorio: "
-                + reserva.getIdLaboratorio() + "<br>Computadora ID: "
-                + reserva.getIdComputadora() + "<br>Fecha: " + reserva.getFecha()
-                + "<br>Horario: " + UiKit.formatHour(reserva.getHoraInicio())
-                + " - " + UiKit.formatHour(reserva.getHoraFin()) + "</html>");
-        UiKit.info(this, "La computadora fue reservada y marcada como OCUPADA.");
+    if (reserva == null) {
+        resultLabel.setForeground(AppTheme.DANGER); // Ajustar si manejan otro color de error en el tema
+        resultLabel.setText("No se pudo realizar la asignación automática.");
+        return;
     }
+
+    int idComputadora = 0;
+    // Downcasting seguro para extraer el ID del componente físico de la v2
+    if (reserva instanceof ReservaComputadora reservaComputadora) {
+        idComputadora = reservaComputadora.getIdComputadora();
+    }
+
+    resultLabel.setForeground(AppTheme.SUCCESS);
+    resultLabel.setText("<html><b>Asignación completada</b><br><br>Laboratorio: "
+            + reserva.getIdLaboratorio() + "<br>Computadora ID: "
+            + idComputadora + "<br>Fecha: " + reserva.getFecha()
+            + "<br>Horario: " + UiKit.formatHour(reserva.getHoraInicio())
+            + " - " + UiKit.formatHour(reserva.getHoraFin()) + "</html>");
+    UiKit.info(this, "La computadora fue reservada y marcada como OCUPADA.");
+}
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
